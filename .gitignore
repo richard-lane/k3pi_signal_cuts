@@ -1,3 +1,7 @@
+# Input, data files etc.
+*.root
+*.pkl
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
