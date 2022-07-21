@@ -6,11 +6,12 @@ Some branches we can just read directly; others require some
 calculation (e.g. the sum of daughter pT) before they can be used
 
 """
+from typing import Tuple, Generator
+
 import numpy as np
-import uproot  # type: ignore
 
 
-def _refit_chi2(tree) -> np.ndarray:
+def refit_chi2(tree) -> np.ndarray:
     """
     The chi2 for the ReFit fit
 
@@ -24,7 +25,7 @@ def _refit_chi2(tree) -> np.ndarray:
     return tree["Dst_ReFit_chi2"].array()[:, 0]
 
 
-def _endvertex_chi2(tree) -> np.ndarray:
+def endvertex_chi2(tree) -> np.ndarray:
     """
     D0 end vertex chi2
 
@@ -36,7 +37,7 @@ def _endvertex_chi2(tree) -> np.ndarray:
     return tree["D0_ENDVERTEX_CHI2"].array()
 
 
-def _orivx_chi2(tree) -> np.ndarray:
+def orivx_chi2(tree) -> np.ndarray:
     """
     D0 origin vertex chi2
 
@@ -48,7 +49,7 @@ def _orivx_chi2(tree) -> np.ndarray:
     return tree["D0_ORIVX_CHI2"].array()
 
 
-def _slow_pi_prob_nn_pi(tree) -> np.ndarray:
+def slow_pi_prob_nn_pi(tree) -> np.ndarray:
     """
     Neural network pion probability for soft pion.
 
@@ -60,7 +61,24 @@ def _slow_pi_prob_nn_pi(tree) -> np.ndarray:
     return tree["Dst_pi_ProbNNpi"].array()
 
 
-def _d0_pt(tree) -> np.ndarray:
+def _pt(p_x: np.ndarray, p_y: np.ndarray) -> np.ndarray:
+    """
+    Transverse momentum
+
+    """
+    # pT is magnitude of px and py
+    return np.sqrt(p_x ** 2 + p_y ** 2)
+
+
+def _particle_names() -> Tuple[str, str, str, str]:
+    """
+    Particle naming convention for K 3pi
+
+    """
+    return ("Kplus", "piplus_0", "piplus_1", "piplus")
+
+
+def d0_pt(tree) -> np.ndarray:
     """
     ReFit D0 pT, calculated from daughter refit momenta.
 
@@ -69,10 +87,18 @@ def _d0_pt(tree) -> np.ndarray:
     :returns: 1d numpy array of D0 refit pT
 
     """
-    raise NotImplementedError
+    # Get D0 pX and pY from the sum of daughter momenta
+    p_x = np.sum(
+        [tree[f"Dst_ReFit_D0_{x}_PX"].array() for x in _particle_names()], axis=0
+    )
+    p_y = np.sum(
+        [tree[f"Dst_ReFit_D0_{x}_PY"].array() for x in _particle_names()], axis=0
+    )
+
+    return _pt(p_x, p_y)
 
 
-def _slow_pi_pt(tree) -> np.ndarray:
+def slow_pi_pt(tree) -> np.ndarray:
     """
     ReFit slow pi, calculated from slow pi momentum.
 
@@ -81,10 +107,13 @@ def _slow_pi_pt(tree) -> np.ndarray:
     :returns: 1d numpy array of D0 refit pT
 
     """
-    raise NotImplementedError
+    return _pt(
+        tree["Dst_ReFit_piplus_PX"].array()[:, 0],
+        tree["Dst_ReFit_piplus_PY"].array()[:, 0],
+    )
 
 
-def _slow_pi_ipchi2(tree) -> np.ndarray:
+def slow_pi_ipchi2(tree) -> np.ndarray:
     """
     slow pi IP chi2
 
@@ -96,7 +125,18 @@ def _slow_pi_ipchi2(tree) -> np.ndarray:
     return tree["Dst_pi_IPCHI2_OWNPV"].array()
 
 
-def _pions_max_pt(tree) -> np.ndarray:
+def _refit_daughters_pt(tree) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Transverse momentum of K, 3 pions
+
+    """
+    p_x: Generator = (tree[f"Dst_ReFit_D0_{x}_PX"] for x in _particle_names())
+    p_y: Generator = (tree[f"Dst_ReFit_D0_{x}_PY"] for x in _particle_names())
+
+    return tuple(_pt(x, y) for x, y in zip(p_x, p_y))
+
+
+def pions_max_pt(tree) -> np.ndarray:
     """
     Max pT of daughter pions
 
@@ -105,10 +145,12 @@ def _pions_max_pt(tree) -> np.ndarray:
     :returns: 1d numpy array of daughter pions max pT
 
     """
-    raise NotImplementedError
+    # Find the element-wise maximum of the pions pT
+    # Only considering the pions so skip the first entry
+    return np.amax(_refit_daughters_pt(tree)[1:], axis=0)
 
 
-def _pions_min_pt(tree) -> np.ndarray:
+def pions_min_pt(tree) -> np.ndarray:
     """
     Min pT of daughter pions
 
@@ -117,10 +159,12 @@ def _pions_min_pt(tree) -> np.ndarray:
     :returns: 1d numpy array of daughter pions min pT
 
     """
-    raise NotImplementedError
+    # Find the element-wise minimum of the pions pT
+    # Only considering the pions so skip the first entry
+    return np.amin(_refit_daughters_pt(tree)[1:], axis=0)
 
 
-def _pions_sum_pt(tree) -> np.ndarray:
+def pions_sum_pt(tree) -> np.ndarray:
     """
     Scalar sum of daughter pions pT
 
@@ -129,10 +173,12 @@ def _pions_sum_pt(tree) -> np.ndarray:
     :returns: 1d numpy array of daughter pion pT sum
 
     """
-    raise NotImplementedError
+    # Find the element-wise sum of the pions pT
+    # Only considering the pions so skip the first entry
+    return np.sum(_refit_daughters_pt(tree)[1:], axis=0)
 
 
-def _daughters_max_pt(tree) -> np.ndarray:
+def daughters_max_pt(tree) -> np.ndarray:
     """
     Max pT of daughter particles
 
@@ -141,10 +187,11 @@ def _daughters_max_pt(tree) -> np.ndarray:
     :returns: 1d numpy array of daughter particles max pT
 
     """
-    raise NotImplementedError
+    # Find the element-wise maximum of the daughters pT
+    return np.amax(_refit_daughters_pt(tree), axis=0)
 
 
-def _daughters_min_pt(tree) -> np.ndarray:
+def daughters_min_pt(tree) -> np.ndarray:
     """
     Min pT of daughter particles
 
@@ -153,10 +200,11 @@ def _daughters_min_pt(tree) -> np.ndarray:
     :returns: 1d numpy array of daughter particles min pT
 
     """
-    raise NotImplementedError
+    # Find the element-wise minimum of the daughters pT
+    return np.amin(_refit_daughters_pt(tree), axis=0)
 
 
-def _daughters_sum_pt(tree) -> np.ndarray:
+def daughters_sum_pt(tree) -> np.ndarray:
     """
     Scalar sum of daughter particles pT
 
@@ -165,4 +213,5 @@ def _daughters_sum_pt(tree) -> np.ndarray:
     :returns: 1d numpy array of daughter particles pT sum
 
     """
-    raise NotImplementedError
+    # Find the element-wise sum of the daughters pT
+    return np.sum(_refit_daughters_pt(tree), axis=0)
