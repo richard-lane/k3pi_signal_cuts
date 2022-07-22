@@ -33,7 +33,7 @@ def _masses_and_mask(sign: str):
     with uproot.open(root_path) as f:
         tree = f[tree_name]
 
-        d0_mass = cuts._d0_mass(tree)
+        d0_mass = cuts.d0_mass(tree)
         delta_m = tree["Dst_ReFit_M"].array()[:, 0] - d0_mass
         keep = cuts.keep(tree)
 

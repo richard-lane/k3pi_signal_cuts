@@ -28,7 +28,7 @@ def _hlt_keep(tree) -> np.ndarray:
     )
 
 
-def _d0_mass(tree) -> np.ndarray:
+def d0_mass(tree) -> np.ndarray:
     """
     The best fit mass of the D0 after ReFit
 
@@ -37,15 +37,23 @@ def _d0_mass(tree) -> np.ndarray:
     return tree["Dst_ReFit_D0_M"].array()[:, 0]
 
 
+def dst_mass(tree) -> np.ndarray:
+    """
+    Best fit mass of D* after ReFit
+
+    """
+    return tree["Dst_ReFit_M"].array()[:, 0]
+
+
 def _d0_mass_keep(tree) -> np.ndarray:
     """
     Keep events near the nominal D0 mass
 
     """
     min_mass, max_mass = 1840.83, 1888.83
-    d0_mass = _d0_mass(tree)
+    d0_m = d0_mass(tree)
 
-    return (min_mass < d0_mass) & (d0_mass < max_mass)
+    return (min_mass < d0_m) & (d0_m < max_mass)
 
 
 def _delta_m_keep(tree) -> np.ndarray:
@@ -56,7 +64,7 @@ def _delta_m_keep(tree) -> np.ndarray:
     min_mass, max_mass = 139.3, 152.0
 
     # Jagged array - take the first (best fit) value for the D* masses
-    delta_m = tree["Dst_ReFit_M"].array()[:, 0] - _d0_mass(tree)
+    delta_m = dst_mass(tree) - d0_mass(tree)
 
     return (min_mass < delta_m) & (delta_m < max_mass)
 
@@ -85,7 +93,6 @@ def cut_fcns() -> Tuple[Callable, ...]:
     return (
         _l0_keep,
         _hlt_keep,
-        _d0_mass,
         _d0_mass_keep,
         _delta_m_keep,
         _ipchi2,
