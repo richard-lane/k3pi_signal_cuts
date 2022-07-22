@@ -2,12 +2,10 @@
 Read the background and signal points (and masses) into pandas DataFrames
 
 """
-import os
 import pickle
-import pathlib
+from multiprocessing import Process
 import pandas as pd
 import numpy as np
-from multiprocessing import Process
 import uproot
 
 from lib_cuts import read_data, definitions, cuts
@@ -84,6 +82,12 @@ def main(year: str, sign: str, background: bool) -> None:
 
 
 if __name__ == "__main__":
-    year, sign = "2018", "RS"
-    main(year, sign, background=False)
-    main(year, sign, background=True)
+    procs = [
+        Process(target=main, args=("2018", "RS", background))
+        for background in (True, False)
+    ]
+
+    for p in procs:
+        p.start()
+    for p in procs:
+        p.join()
