@@ -15,7 +15,11 @@ Assuming you're a new(ish) student doing a $D^0\rightarrow K3\pi$ analysis, here
 
 At this point you will know how to do some signal cuts on a sample of data.
 When it comes to the actual analysis it will be impractical to download all the data (it may be practicable to download
-all the MC but it might not be), so I'll need to decide what to do about that TODO
+all the MC but it might not be), so I'll need to decide what to do about that
+My current thinking is - don't need to train these cuts on the whole data sample obviously, and it shouldn't matter anyway
+since the data here I'm using is outside of the mass window used for the mass fit.
+So i can just train the classifier on a small-ish subset of the data, perhaps retraining again for each year and then apply
+that to the whole data sample (inside the allowed mass window that we're considering for the mass fit) when it comes to doing the analysis.
 
 
 Input
