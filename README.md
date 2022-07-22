@@ -13,6 +13,10 @@ Assuming you're a new(ish) student doing a $D^0\rightarrow K3\pi$ analysis, here
  - Train the classifier (i haven't implemented this yet)
  - Run some of the cross checks that I haven't implemented either
 
+At this point you will know how to do some signal cuts on a sample of data.
+When it comes to the actual analysis it will be impractical to download all the data (it may be practicable to download
+all the MC but it might not be), so I'll need to decide what to do about that TODO
+
 
 Input
 ----
