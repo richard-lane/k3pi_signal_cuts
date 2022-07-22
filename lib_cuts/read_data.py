@@ -2,11 +2,10 @@
 Read the right branches, do the right stuff to the data
 to get it into the right format for the classifier
 
-Some branches we can just read directly; others require some
-calculation (e.g. the sum of daughter pT) before they can be used
+Some branches we can just read directly; others require some calculation (e.g. the sum of daughter pT) before they can be used
 
 """
-from typing import Tuple, Generator
+from typing import Tuple, Generator, Callable
 
 import numpy as np
 
@@ -89,10 +88,10 @@ def d0_pt(tree) -> np.ndarray:
     """
     # Get D0 pX and pY from the sum of daughter momenta
     p_x = np.sum(
-        [tree[f"Dst_ReFit_D0_{x}_PX"].array() for x in _particle_names()], axis=0
+        [tree[f"Dst_ReFit_D0_{x}_PX"].array()[:, 0] for x in _particle_names()], axis=0
     )
     p_y = np.sum(
-        [tree[f"Dst_ReFit_D0_{x}_PY"].array() for x in _particle_names()], axis=0
+        [tree[f"Dst_ReFit_D0_{x}_PY"].array()[:, 0] for x in _particle_names()], axis=0
     )
 
     return _pt(p_x, p_y)
@@ -130,8 +129,12 @@ def _refit_daughters_pt(tree) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.nd
     Transverse momentum of K, 3 pions
 
     """
-    p_x: Generator = (tree[f"Dst_ReFit_D0_{x}_PX"] for x in _particle_names())
-    p_y: Generator = (tree[f"Dst_ReFit_D0_{x}_PY"] for x in _particle_names())
+    p_x: Generator = (
+        tree[f"Dst_ReFit_D0_{x}_PX"].array()[:, 0] for x in _particle_names()
+    )
+    p_y: Generator = (
+        tree[f"Dst_ReFit_D0_{x}_PY"].array()[:, 0] for x in _particle_names()
+    )
 
     return tuple(_pt(x, y) for x, y in zip(p_x, p_y))
 
@@ -215,3 +218,57 @@ def daughters_sum_pt(tree) -> np.ndarray:
     """
     # Find the element-wise sum of the daughters pT
     return np.sum(_refit_daughters_pt(tree), axis=0)
+
+
+def training_var_functions() -> Tuple:
+    """
+    Returns a tuple of functions used for finding the training variables
+
+    """
+    return (
+        refit_chi2,
+        endvertex_chi2,
+        orivx_chi2,
+        slow_pi_prob_nn_pi,
+        d0_pt,
+        slow_pi_pt,
+        slow_pi_ipchi2,
+        pions_max_pt,
+        pions_min_pt,
+        pions_sum_pt,
+        daughters_max_pt,
+        daughters_min_pt,
+        daughters_sum_pt,
+    )
+
+
+def training_var_names() -> Tuple:
+    """
+    Returns a tuple of the names of training variables
+
+    Contains matplotlib-style LaTeX formatting: suitable for using as plot labels, etc.
+
+    """
+    return (
+        r"ReFit$\chi^2$",
+        r"D0 End Vtx $\chi^2$",
+        r"D0 Origin Vtx $\chi^2$",
+        r"$\pi_s$ ProbNN$\pi$",
+        r"D0 $p_T$",
+        r"$\pi_s$ $p_T$",
+        r"$\pi_s$ IP$\chi^2$",
+        r"$3\pi$ max $p_T$",
+        r"$3\pi$ min $p_T$",
+        r"$3\pi$ sum $p_T$",
+        r"$K3\pi$ max $p_T$",
+        r"$K3\pi$ min $p_T$",
+        r"$K3\pi$ sum $p_T$",
+    )
+
+
+def points(tree) -> np.ndarray:
+    """
+    Data used to train the classifier; shape (Nx13)
+
+    """
+    return np.column_stack([f(tree) for f in training_var_functions()])
