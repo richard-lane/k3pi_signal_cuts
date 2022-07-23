@@ -62,19 +62,31 @@ def _create_df(tree, background: bool = False) -> pd.DataFrame:
     )
 
 
-def _create_dump(sign: str, files: List[str], background: bool = False) -> None:
+def _create_dump(
+    gen: np.random.Generator,
+    sign: str,
+    files: List[str],
+    background: bool = False,
+    train_fraction: float = 0.5,
+) -> None:
     """
-    Create pickle dump of the background points, D0 mass and delta M
+    Create pickle dump of the background points, D0 mass and delta M and test/train flag
 
+    :param gen: random number generator for train/test split
+    :param sign: "RS" or "WS" - tells us which tree to read from the file
     :param files: iterable of filepaths to read from
     :param background: bool flag telling us whether this data is signal or background - they get treated slightly
                        differently (apply straight cuts to signal; take only evts in upper mass sidebands for bkg)
+    :param train_fraction: how much data to set aside for testing/training.
 
     """
     dfs = []
     for root_file in files:
         with uproot.open(root_file) as f:
-            dfs.append(_create_df(f[definitions.tree_name(sign)], background))
+            df = _create_df(f[definitions.tree_name(sign)], background)
+            df["train"] = gen.random(len(df)) < train_fraction
+
+            dfs.append(df)
 
     # Dump it
     path = definitions.df_dump_path(background)
@@ -93,7 +105,8 @@ def main(year: str, sign: str, background: bool) -> None:
         if not background
         else definitions.data_files(year, "magdown")
     )
-    _create_dump(sign, files, background)
+    gen = np.random.default_rng(seed=0)
+    _create_dump(gen, sign, files, background)
 
 
 if __name__ == "__main__":
