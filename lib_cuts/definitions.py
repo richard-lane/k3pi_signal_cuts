@@ -7,6 +7,8 @@ import glob
 import pathlib
 from typing import List
 
+CLASSIFIER_PATH = str(pathlib.Path(__file__).resolve().parents[1] / "classifier.pkl")
+
 BKG_DUMP = str(pathlib.Path(__file__).resolve().parents[1] / "data" / "bkg_dump.pkl")
 
 SIGNAL_DUMP = str(
