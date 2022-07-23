@@ -4,6 +4,7 @@ Read the background and signal points (and masses) into pandas DataFrames
 """
 import pickle
 from multiprocessing import Process
+from typing import List
 import pandas as pd
 import numpy as np
 import uproot
@@ -30,9 +31,9 @@ def _bkg_keep(d_mass: np.ndarray, delta_m: np.ndarray) -> np.ndarray:
     return d_mass_mask & delta_m_mask
 
 
-def create_dump(tree, background: bool = False) -> None:
+def _create_df(tree, background: bool = False) -> pd.DataFrame:
     """
-    Create pickle dump of the background points, D0 mass and delta M
+    Populate a pandas dataframe with the training variables, D0 mass and delta M
 
     """
     # Find training variables
@@ -55,16 +56,31 @@ def create_dump(tree, background: bool = False) -> None:
     delta_m = delta_m[keep]
 
     # Populate dataframe
-    df = pd.DataFrame(
+    return pd.DataFrame(
         np.column_stack((training_vars, d_mass, delta_m)),
         columns=[*read_data.training_var_names(), "D Mass", "Delta M"],
     )
+
+
+def _create_dump(sign: str, files: List[str], background: bool = False) -> None:
+    """
+    Create pickle dump of the background points, D0 mass and delta M
+
+    :param files: iterable of filepaths to read from
+    :param background: bool flag telling us whether this data is signal or background - they get treated slightly
+                       differently (apply straight cuts to signal; take only evts in upper mass sidebands for bkg)
+
+    """
+    dfs = []
+    for root_file in files:
+        with uproot.open(root_file) as f:
+            dfs.append(_create_df(f[definitions.tree_name(sign)], background))
 
     # Dump it
     path = definitions.df_dump_path(background)
     with open(path, "wb") as f:
         print(f"dumping {path}")
-        pickle.dump(df, f)
+        pickle.dump(pd.concat(dfs), f)
 
 
 def main(year: str, sign: str, background: bool) -> None:
@@ -77,8 +93,7 @@ def main(year: str, sign: str, background: bool) -> None:
         if not background
         else definitions.data_files(year, "magdown")
     )
-    with uproot.open(files[0]) as root_file:
-        create_dump(root_file[definitions.tree_name(sign)], background)
+    _create_dump(sign, files, background)
 
 
 if __name__ == "__main__":
