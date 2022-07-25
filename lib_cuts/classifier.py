@@ -1,22 +1,21 @@
-from sklearn.ensemble import RandomForestClassifier
+import numpy as np
 
 
-class Classifier(RandomForestClassifier):
+class Classifier():
     """
-    Basically just a wrapper around an sklearn classifier that returns predict_proba
-    normalised
+    Basically just storange for an sklearn classifier
+    returns predict_proba normalised to a mean of 0.5
 
     """
 
-    def __init__(self, n_sig: int, n_bkg: int, *args, **kwargs):
+    def __init__(self, n_sig: int, n_bkg: int, clf):
         """
         Initialise the base classifier with *args and **kwargs and store the signal/bkg ratio
         so that we can use it later for predicting probabilities
 
         """
         self._sig_bkg_ratio = n_sig / n_bkg
-
-        super().__init__(self, *args, **kwargs)
+        self.clf = clf
 
     def predict_proba(self, points: np.ndarray) -> np.ndarray:
         """
@@ -24,4 +23,4 @@ class Classifier(RandomForestClassifier):
         the mean probability is 0 (i.e. removing the effect of an imbalanced training set)
 
         """
-        return super().predict_proba(points) / self._sig_bkg_ratio
+        return self.clf.predict_proba(points) / self._sig_bkg_ratio
