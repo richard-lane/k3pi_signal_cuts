@@ -43,6 +43,9 @@ def _create_df(tree, background: bool = False) -> pd.DataFrame:
     d_mass = cuts.d0_mass(tree)
     delta_m = cuts.dst_mass(tree) - d_mass
 
+    # Find also decay times
+    times = read_data.decay_times(tree)
+
     # If background, only use data from the upper mass sidebands
     if background:
         keep = _bkg_keep(d_mass, delta_m)
@@ -54,11 +57,12 @@ def _create_df(tree, background: bool = False) -> pd.DataFrame:
     training_vars = training_vars[keep]
     d_mass = d_mass[keep]
     delta_m = delta_m[keep]
+    times = times[keep]
 
     # Populate dataframe
     return pd.DataFrame(
-        np.column_stack((training_vars, d_mass, delta_m)),
-        columns=[*read_data.training_var_names(), "D Mass", "Delta M"],
+        np.column_stack((training_vars, d_mass, delta_m, times)),
+        columns=[*read_data.training_var_names(), "D Mass", "Delta M", "time"],
     )
 
 

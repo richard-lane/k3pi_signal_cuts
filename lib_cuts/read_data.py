@@ -220,6 +220,20 @@ def daughters_sum_pt(tree) -> np.ndarray:
     return np.sum(_refit_daughters_pt(tree), axis=0)
 
 
+def decay_times(tree) -> np.ndarray:
+    """
+    Decay time of D0 meson, in ps
+
+    :param tree: real data uproot TTree to read from
+                 (type annotation didnt work so i skipped it)
+    :returns: 1d numpy array of decay times
+
+    """
+    # Jagged array; take first (best-fit) value
+    # Divide by 0.3 to get from c*tau to ps
+    return tree["Dst_ReFit_D0_ctau"].array()[:, 0] / 0.3
+
+
 def training_var_functions() -> Tuple:
     """
     Returns a tuple of functions used for finding the training variables
