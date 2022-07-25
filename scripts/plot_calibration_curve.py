@@ -7,6 +7,9 @@ In the case of the Random Forest (which I am using for now..) this is unlikely t
 the ensemble of trees is unlikely to predict either 0 or 1 probability because this would require all trees to
 predict (e.g.) 0. Thsi is unlikely as there may be noise in the trees (from e.g. training on a subset of features).
 
+This doesn't matter much though, as long as it is roughly calibrated for the values around 0.5 that we might use for
+the predict_proba cut threshhold
+
 """
 import sys
 import pathlib
