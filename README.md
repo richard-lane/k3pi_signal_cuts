@@ -39,7 +39,7 @@ All use the holdout (testing) sample.
 
 The more important/interesting ones are:
  - Histograms of the variables before and after applying cuts `scripts/plot_cuts.py`
- - A ROC curve (TODO)
+ - A ROC curve `scripts/plot_roc.py`
  - A study into the optimal cut to use to get the maximal signal significance `scripts/plot_signal_significance.py`
  - A calibration curve (see below) `scripts/plot_calibration_curve.py`
  - The cut efficiency as a function of time `scripts/plot_cut_efficiency.py`
