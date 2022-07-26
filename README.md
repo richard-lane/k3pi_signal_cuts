@@ -30,9 +30,35 @@ Some notes on what to do are in the `data/` [README](data/README.md) - but basic
 
 Algorithm
 ----
-I haven't implemented it yet
+Uses a simple `RandomForestClassifier` for now
 
-Cross checks
+Scripts
 ----
-I haven't implemented these either
+The `scripts/` dir contains python scripts that generally create plots giving information about the classifier.
+All use the holdout (testing) sample.
+
+The more important/interesting ones are:
+ - Histograms of the variables before and after applying cuts `scripts/plot_cuts.py`
+ - A ROC curve (TODO)
+ - A study into the optimal cut to use to get the maximal signal significance `scripts/plot_signal_significance.py`
+ - A calibration curve (see below) `scripts/plot_calibration_curve.py`
+ - The cut efficiency as a function of time `scripts/plot_cut_efficiency.py`
+
+
+### A note on calibration
+Since we are using this classifier to perform cuts based on probabilitiy, we would like the classification probability
+returned by the classifier to be literally interpretable as a probability. i.e. - if we give our classifier 100
+events and it assigns them all as signal with a probability of 0.8, we would like 80 of them to be signal and 20 to be
+background.
+In general, an ensemble of trees will not return calibrated probabilities - this is for good reasons (all trees would
+have to return 0 for the ensemble to report 0 probability, so the classifier is unlikely to be calibrated at the tails).
+
+#### The thing I'm currently confused about
+This probably doesn't really matter for us - we will be optimising the threshhold value by finding the maximum signal
+significance - but the optimal cut here DOES depend on the relative amounts of signal/background used in the training
+and testing samples.
+ - should I train on a balanced dataset (i.e. same amount of signal + background)?
+ - should I test on a balanced dataset, or one with some imbalance? The optimal cut will depend on the relative amount
+   of signal and background in the testing sample - which I don't know for real data...
+ - Does having an imbalance in testing/training datasets really cause issues with calibration..?
 
