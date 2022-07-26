@@ -18,6 +18,27 @@ SIGNAL_DUMP = str(
 D0_MASS_MEV = 1864.84
 
 
+def ampgen_files(sign: str) -> List[str]:
+    """
+    Return a list of strings pointing to AmpGen generated D0->K3pi ROOT files
+
+    """
+    assert sign in {"RS", "WS"}
+
+    data_dir = (
+        pathlib.Path(__file__).resolve().parents[1] / "data" / "ampgen" / sign.lower()
+    )
+
+    files = glob.glob(str(data_dir / "*"))
+
+    if not files:
+        raise FileNotFoundError(
+            f"No files found in {data_dir}; have you created them? See the readme in the `data/` dir."  # TODO instructions for ampgen
+        )
+
+    return files
+
+
 def mc_files(year: str, magnetisation: str) -> List[str]:
     """
     Return a list of strings pointing to MC ROOT files that we have downloaded and put in the right directory
