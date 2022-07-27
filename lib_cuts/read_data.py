@@ -286,3 +286,52 @@ def points(tree) -> np.ndarray:
 
     """
     return np.column_stack([f(tree) for f in training_var_functions()])
+
+
+def invariant_masses(
+    px: np.ndarray, py: np.ndarray, pz: np.ndarray, energy: np.ndarray
+):
+    """
+    Find the invariant masses of a collection of particles represented by their kinematic data
+
+    :param px: particle x momenta
+    :param py: particle y momenta
+    :param pz: particle z momenta
+    :param energy: particle energies
+    :returns: array of particle invariant masses
+
+    """
+    return np.sqrt(energy ** 2 - px ** 2 - py ** 2 - pz ** 2)
+
+
+def momentum_order(
+    k: np.ndarray, pi1: np.ndarray, pi2: np.ndarray
+) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Order two pions based on the invariant mass M(Kpi)
+
+    :param k: kaon parameters (px, py, pz, E)
+    :param pi1: pion parameters (px, py, pz, E)
+    :param pi2: pion parameters (px, py, pz, E)
+
+    :returns: (lower_mass_pion, higher_mass_pion) as their pion parameters. Returns copies of the original arguments
+
+    """
+    new_pi1, new_pi2 = np.zeros((4, len(k.T))), np.zeros((4, len(k.T)))
+
+    # Find invariant masses
+    m1 = invariant_masses(*np.add(k, pi1))
+    m2 = invariant_masses(*np.add(k, pi2))
+
+    # Create bool mask of pi1 > pi2
+    mask = m1 > m2  # pi1[mask] selects high-mass pions
+    inv_mask = np.invert(mask)  # pi2[inv_mask] selects high mass pions
+
+    # Fill new arrs
+    new_pi1[:, inv_mask] = pi1[:, inv_mask]
+    new_pi1[:, mask] = pi2[:, mask]
+
+    new_pi2[:, mask] = pi1[:, mask]
+    new_pi2[:, inv_mask] = pi2[:, inv_mask]
+
+    return new_pi1, new_pi2
