@@ -68,9 +68,8 @@ def _create_df(tree, background: bool = False) -> pd.DataFrame:
 
 def _create_dump(
     gen: np.random.Generator,
-    sign: str,
     files: List[str],
-    background: bool = False,
+    sign: str = None,
     train_fraction: float = 0.5,
 ) -> None:
     """
@@ -84,10 +83,17 @@ def _create_dump(
     :param train_fraction: how much data to set aside for testing/training.
 
     """
+    # If a sign was provided we're creating a dump of background
+    background = True if sign else False
+
+    # Use the RS tree if we're reading signal MC (?) TODO work out if this is right
+    # Otherwise use the tree that we asked for
+    tree_name = definitions.tree_name(sign) if sign else definitions.tree_name("RS")
+
     dfs = []
     for root_file in files:
         with uproot.open(root_file) as f:
-            df = _create_df(f[definitions.tree_name(sign)], background)
+            df = _create_df(f[tree_name], background)
             df["train"] = gen.random(len(df)) < train_fraction
 
             dfs.append(df)
@@ -99,24 +105,33 @@ def _create_dump(
         pickle.dump(pd.concat(dfs), f)
 
 
-def main(year: str, sign: str, background: bool) -> None:
+def main(year: str, bkg_sign: str = None) -> None:
     """
     Create pickle dump
 
+    :param year: data-taking year
+    :param bkg_sign: sign ("RS" or "WS") used for estimating the background.
+                     Note that the the signal component used for the classifier cuts is taken from phase space MC,
+                     so in this case we don't need to specify a sign.
+                     Pass None here to create a dump for the signal.
+
     """
-    files = (
-        definitions.mc_files(year, "magdown")
-        if not background
-        else definitions.data_files(year, "magdown")
-    )
+    # TODO change this perhaps
     gen = np.random.default_rng(seed=0)
-    _create_dump(gen, sign, files, background)
+
+    # Signal
+    if not bkg_sign:
+        _create_dump(gen, definitions.mc_files(year, "magdown", "phsp"))
+
+    # Background
+    else:
+        _create_dump(gen, definitions.data_files(year, "magdown"), bkg_sign)
 
 
 if __name__ == "__main__":
     procs = [
-        Process(target=main, args=("2018", "RS", background))
-        for background in (True, False)
+        Process(target=main, args=("2018",)),  # Signal
+        Process(target=main, args=("2018", "RS")),  # Background
     ]
 
     for p in procs:

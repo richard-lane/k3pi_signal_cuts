@@ -19,7 +19,12 @@ Monte Carlo
 The locations of MC files on lxplus are found in the text files in this dir.
 There aren't many of them - download them with `scp` or `rsync` (better) to run things locally.
 
-The MC was generated according to phase space only (i.e. no amplitude model).
+For everything (i.e. `create_dumps.py` to work properly, put the data in directories like
+`data/mc_{year}_{mag}_{sign}/`, e.g. `data/mc_2018_magdown_rs/`.
+You should get a reasonably helpful error message if the data isn't found correctly, that should give you a hint where
+you should be saving things.
+
+For training the BDT, the MC was generated according to phase space only (i.e. no amplitude model).
 
 Real Data
 ----

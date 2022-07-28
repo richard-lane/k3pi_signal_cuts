@@ -39,22 +39,30 @@ def ampgen_files(sign: str) -> List[str]:
     return files
 
 
-def mc_files(year: str, magnetisation: str) -> List[str]:
+def mc_files(year: str, magnetisation: str, sign: str) -> List[str]:
     """
     Return a list of strings pointing to MC ROOT files that we have downloaded and put in the right directory
 
     For instructions on how to do this, see `data/README.md`
 
     """
+    sign = sign.lower()
     # Haven't got round to many of these
     assert year in {"2018"}
     assert magnetisation in {"magdown"}
+    assert sign in {"rs", "ws", "phsp"}
 
     data_dir = (
         pathlib.Path(__file__).resolve().parents[1]
         / "data"
-        / f"mc_{year}_{magnetisation}"
+        / f"mc_{year}_{magnetisation}_{sign}"
     )
+
+    if not data_dir.is_dir():
+        raise FileNotFoundError(
+            f"Directory {data_dir} does not exist; you should download some MC files (from lxplus)"
+            "and put them in this directory. See the readme in the `data/` dir."
+        )
 
     files = glob.glob(str(data_dir / "*"))
 
@@ -108,12 +116,12 @@ def tree_name(sign: str) -> str:
 
 
 def bkg_dump_exists() -> bool:
-    """ Whether the data dump has been created """
+    """Whether the data dump has been created"""
     return os.path.exists(BKG_DUMP)
 
 
 def signal_dump_exists() -> bool:
-    """ Whether the data dump has been created """
+    """Whether the data dump has been created"""
     return os.path.exists(SIGNAL_DUMP)
 
 
