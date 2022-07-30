@@ -290,7 +290,7 @@ def points(tree) -> np.ndarray:
 
 def invariant_masses(
     px: np.ndarray, py: np.ndarray, pz: np.ndarray, energy: np.ndarray
-):
+) -> np.ndarray:
     """
     Find the invariant masses of a collection of particles represented by their kinematic data
 
@@ -323,9 +323,9 @@ def momentum_order(
     m1 = invariant_masses(*np.add(k, pi1))
     m2 = invariant_masses(*np.add(k, pi2))
 
-    # Create bool mask of pi1 > pi2
+    # Create bool mask of telling us which pion has the higher mass
     mask = m1 > m2  # pi1[mask] selects high-mass pions
-    inv_mask = np.invert(mask)  # pi2[inv_mask] selects high mass pions
+    inv_mask = ~mask  # pi2[inv_mask] selects high-mass pions
 
     # Fill new arrs
     new_pi1[:, inv_mask] = pi1[:, inv_mask]
