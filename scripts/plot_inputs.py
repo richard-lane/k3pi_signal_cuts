@@ -1,49 +1,71 @@
 """
-Plot training variables used by the classifier
+Plot some relevant variables used for selecting the data/training the classifier
 
 """
 import sys
-import pickle
 import pathlib
-import uproot
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
-from tqdm import tqdm
 
-sys.path.append(str(pathlib.Path(__file__).absolute().parents[1]))
+sys.path.append(str(pathlib.Path(__file__).absolute().parents[2] / "k3pi-data"))
 
-from lib_cuts import read_data, definitions
+from lib_data import get, training_vars
+
+
+def _plot(axis: plt.Axes, signal: np.ndarray, bkg: np.ndarray) -> None:
+    """
+    Plot signal + bkg on an axis
+
+    """
+    hist_kw = {"histtype": "step", "density": True}
+    quantiles = [0.01, 0.99]  # Which quantiles to use for binning
+    n_bins = 100
+
+    sig_quantile = np.quantile(signal, quantiles)
+    bkg_quantile = np.quantile(bkg, quantiles)
+
+    bins = np.linspace(
+        min(bkg_quantile[0], sig_quantile[0]),
+        max(bkg_quantile[1], sig_quantile[1]),
+        n_bins,
+    )
+
+    axis.hist(signal, bins=bins, **hist_kw, label="sig")
+    axis.hist(bkg, bins=bins, **hist_kw, label="bkg")
+
+    axis.legend()
 
 
 def main():
-    year, sign = "2018", "RS"
-    # Read dataframes of stuff
-    with open(definitions.df_dump_path(background=True), "rb") as f:
-        bkg_df = pickle.load(f)
+    """
+    Plot the training vars and some masses
 
-    with open(definitions.df_dump_path(background=False), "rb") as f:
-        sig_df = pickle.load(f)
+    """
+    year, magnetisation = "2018", "magdown"
+
+    # Read the right data
+    # We want WS MC and upper mass sideband data for training the classifier
+    mc_df = get.mc(year, "dcs", magnetisation)
+    uppermass_df = pd.concat(get.uppermass(year, "dcs", magnetisation))
 
     # Plot
     fig, ax = plt.subplots(5, 3, figsize=(15, 9))
 
-    kw = {"histtype": "step", "density": True}
-    quantiles = [0.01, 0.99]  # Which quantiles to use for binning
-    n_bins = 100
-    for col, axis in zip(bkg_df, ax.ravel()):
-        bkg_quantile = np.quantile(bkg_df[col], quantiles)
-        sig_quantile = np.quantile(sig_df[col], quantiles)
+    columns = list(training_vars.training_var_names()) + ["D0 mass", "D* mass"]
+    for col, axis in zip(columns, ax.ravel()):
+        _plot(axis, mc_df[col], uppermass_df[col])
 
-        bins = np.linspace(
-            min(bkg_quantile[0], sig_quantile[0]),
-            max(bkg_quantile[1], sig_quantile[1]),
-            n_bins,
-        )
+        title = col if col in training_vars.training_var_names() else col + "*"
+        axis.set_title(title)
 
-        axis.hist(sig_df[col], bins=bins, **kw, label="sig")
-        axis.hist(bkg_df[col], bins=bins, **kw, label="bkg")
-        axis.set_title(col)
-        axis.legend()
+    # Let's also plot the mass difference
+    _plot(
+        ax.ravel()[-1],
+        mc_df["D* mass"] - mc_df["D0 mass"],
+        uppermass_df["D* mass"] - uppermass_df["D0 mass"],
+    )
+    ax.ravel()[-1].set_title(r"$\Delta$M*")
 
     fig.tight_layout()
     plt.show()

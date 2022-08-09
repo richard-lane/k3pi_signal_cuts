@@ -7,8 +7,6 @@ import glob
 import pathlib
 from typing import List
 
-CLASSIFIER_PATH = str(pathlib.Path(__file__).resolve().parents[1] / "classifier.pkl")
-
 BKG_DUMP = str(pathlib.Path(__file__).resolve().parents[1] / "data" / "bkg_dump.pkl")
 
 SIGNAL_DUMP = str(
@@ -16,6 +14,22 @@ SIGNAL_DUMP = str(
 )
 
 D0_MASS_MEV = 1864.84
+
+
+def classifier_path(year: str, sign: str, magnetisation: str) -> pathlib.Path:
+    """
+    Where the classifier lives
+
+    """
+    assert year in {"2018"}
+    assert sign in {"cf", "dcs"}
+    assert magnetisation in {"magdown"}
+
+    return (
+        pathlib.Path(__file__).resolve().parents[1]
+        / "classifiers"
+        / f"{year}_{sign}_{magnetisation}.pkl"
+    )
 
 
 def ampgen_files(sign: str) -> List[str]:
