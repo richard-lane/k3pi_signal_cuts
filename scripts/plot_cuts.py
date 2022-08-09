@@ -73,7 +73,7 @@ def main():
 
     # Lets also undersample so we get the same amount of signal/bkg that we expect to see
     # in the data
-    sig_frac = 0.025
+    sig_frac = 0.5
     keep_frac = util.weight(
         np.concatenate((np.ones(len(sig_df)), np.zeros(len(bkg_df)))), sig_frac
     )

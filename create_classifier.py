@@ -64,10 +64,10 @@ def main(year: str, sign: str, magnetisation: str):
     # We want to train the classifier on a realistic proportion of signal + background
     # Get this from running `scripts/mass_fit.py`
     # using this number for now
-    sig_frac = 0.025
+    sig_frac = 0.5
     train_weights = util.weights(train_label, sig_frac)
 
-    clf = RandomForestClassifier()
+    clf = RandomForestClassifier(n_estimators=200)
     # We only want to use some of our variables for training
     training_labels = list(training_vars.training_var_names())
     clf.fit(train_df[training_labels], train_label, train_weights)

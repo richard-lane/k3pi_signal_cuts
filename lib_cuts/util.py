@@ -16,7 +16,10 @@ def weight(label: np.ndarray, signal_fraction: float) -> float:
     """
     n_sig, n_bkg = np.sum(label == 1), np.sum(label == 0)
 
-    return n_bkg * signal_fraction / (n_sig * (1 - signal_fraction))
+    retval = n_bkg * signal_fraction / (n_sig * (1 - signal_fraction))
+    assert 0.0 < retval and retval < 1.0
+
+    return retval
 
 
 def weights(label: np.ndarray, signal_fraction: float) -> np.ndarray:
