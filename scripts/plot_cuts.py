@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 sys.path.append(str(pathlib.Path(__file__).absolute().parents[2] / "k3pi-data"))
 sys.path.append(str(pathlib.Path(__file__).absolute().parents[1]))
 
+from lib_cuts import util
 from lib_cuts.get import classifier as get_clf
 from lib_data import get, training_vars
 
@@ -69,6 +70,17 @@ def main():
     clf = get_clf(year, sign, magnetisation)
 
     training_labels = list(training_vars.training_var_names())
+
+    # Lets also undersample so we get the same amount of signal/bkg that we expect to see
+    # in the data
+    sig_frac = 0.025
+    keep_frac = util.weight(
+        np.concatenate((np.ones(len(sig_df)), np.zeros(len(bkg_df)))), sig_frac
+    )
+    sig_keep = np.random.default_rng().random(len(sig_df)) < keep_frac
+
+    sig_df = sig_df[sig_keep]
+
     sig_predictions = clf.predict(sig_df[training_labels])
     bkg_predictions = clf.predict(bkg_df[training_labels])
 

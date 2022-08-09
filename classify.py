@@ -1,4 +1,5 @@
 """
+TODO delete
 Train a classifier to separate signal and background
 
 You should have already downloaded the data files and created pickle dumps

@@ -15,6 +15,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 
 from lib_cuts import definitions
+from lib_cuts import util
 
 sys.path.append(str(pathlib.Path(__file__).absolute().parents[1] / "k3pi-data"))
 
@@ -60,15 +61,27 @@ def main(year: str, sign: str, magnetisation: str):
         year, sign, magnetisation
     )
 
-    clf = RandomForestClassifier()
+    # We want to train the classifier on a realistic proportion of signal + background
+    # Get this from running `scripts/mass_fit.py`
+    # using this number for now
+    sig_frac = 0.025
+    train_weights = util.weights(train_label, sig_frac)
 
-    # We only want to train on a subset of the columns in the dataframe
-    # i.e. we don't want to train based on the D mass, Delta M or the train/test label
+    clf = RandomForestClassifier()
+    # We only want to use some of our variables for training
     training_labels = list(training_vars.training_var_names())
-    clf.fit(train_df[training_labels], train_label)
+    clf.fit(train_df[training_labels], train_label, train_weights)
 
     print(classification_report(train_label, clf.predict(train_df[training_labels])))
-    print(classification_report(test_label, clf.predict(test_df[training_labels])))
+
+    # Resample for the training part of the classification report
+    gen = np.random.default_rng()
+    test_mask = util.resample_mask(gen, test_label, sig_frac)
+    print(
+        classification_report(
+            test_label[test_mask], clf.predict(test_df[training_labels][test_mask])
+        )
+    )
 
     with open(clf_path, "wb") as f:
         pickle.dump(clf, f)
