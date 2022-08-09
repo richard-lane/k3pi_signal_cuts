@@ -50,7 +50,7 @@ def main():
     uppermass_df = pd.concat(get.uppermass(year, "dcs", magnetisation))
 
     # Plot
-    fig, ax = plt.subplots(5, 3, figsize=(15, 9))
+    fig, ax = plt.subplots(4, 4, figsize=(15, 9))
 
     columns = list(training_vars.training_var_names()) + ["D0 mass", "D* mass"]
     for col, axis in zip(columns, ax.ravel()):
