@@ -3,11 +3,11 @@ Get a classifier
 
 """
 import pickle
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 from . import definitions
 
 
-def classifier(year: str, sign: str, magnetisation: str) -> RandomForestClassifier:
+def classifier(year: str, sign: str, magnetisation: str) -> GradientBoostingClassifier:
     """
     The right classifier
 

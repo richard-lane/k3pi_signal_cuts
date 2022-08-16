@@ -10,8 +10,11 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 
 sys.path.append(str(pathlib.Path(__file__).absolute().parents[1]))
+sys.path.append(str(pathlib.Path(__file__).absolute().parents[2] / "k3pi-data"))
 
 from lib_cuts import read_data, util, metrics
+from lib_cuts.get import classifier as get_clf
+from lib_data import get, training_vars
 
 
 def main():
@@ -28,20 +31,29 @@ def main():
 
     """
     # Read dataframes of stuff
-    sig_df = util.read_dataframe(background=False)
-    bkg_df = util.read_dataframe(background=True)
+    year, sign, magnetisation = "2018", "dcs", "magdown"
+    sig_df = get.mc(year, sign, magnetisation)
+    bkg_df = pd.concat(get.uppermass(year, sign, magnetisation))
 
     # We only want the testing data here
     sig_df = sig_df[~sig_df["train"]]
     bkg_df = bkg_df[~bkg_df["train"]]
 
+    # Throw away data to get a realistic proportion of each
+    sig_frac = 0.023  # Got this number from k3pi_signal_cuts/scripts/mass_fit.py
+    keep_frac = util.weight(
+        np.concatenate((np.ones(len(sig_df)), np.zeros(len(bkg_df)))), sig_frac
+    )
+    sig_keep = np.random.default_rng().random(len(sig_df)) < keep_frac
+    print(f"keeping {np.sum(sig_keep)} of {len(sig_keep)}")
+
     # Find signal probabilities
-    training_var_names = list(read_data.training_var_names())
-    sig_probs = util.get_classifier().predict_proba(sig_df[training_var_names])[:, 1]
-    bkg_probs = util.get_classifier().predict_proba(bkg_df[training_var_names])[:, 1]
+    clf = get_clf(year, sign, magnetisation)
+    training_var_names = list(training_vars.training_var_names())
+    sig_probs = clf.predict_proba(sig_df[training_var_names])[:, 1]
+    bkg_probs = clf.predict_proba(bkg_df[training_var_names])[:, 1]
 
     # For various values of the threshhold, find the signal significance
-
     def sig(threshhold: float) -> float:
         n_sig = np.sum(sig_probs > threshhold)
         n_bkg = np.sum(bkg_probs > threshhold)
@@ -80,6 +92,30 @@ def main():
 
     ax.set_xlabel("probability threshhold")
     ax.set_ylabel("signal significance")
+
+    plt.savefig("significance_threshholds.png")
+    plt.show()
+
+    # Plot delta M for each threshhold
+    plt.clf()
+    fig, ax = plt.subplots()
+    sig_delta_m = sig_df["D* mass"] - sig_df["D0 mass"]
+    bkg_delta_m = bkg_df["D* mass"] - bkg_df["D0 mass"]
+
+    hist_kw = {"bins": np.linspace(130, 155), "histtype": "step"}
+    for i, threshhold in enumerate(threshholds[:14]):
+        if not i % 3:
+            sig_keep = sig_probs > threshhold
+            bkg_keep = bkg_probs > threshhold
+            ax.hist(
+                np.concatenate((sig_delta_m[sig_keep], bkg_delta_m[bkg_keep])),
+                **hist_kw,
+                label=f"{threshhold=:.3f}",
+            )
+
+    ax.legend()
+    fig.savefig("masses.png")
+
     plt.show()
 
 
