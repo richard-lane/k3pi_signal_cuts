@@ -13,6 +13,7 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy.integrate import quad
 
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[2] / "k3pi_mass_fit"))
@@ -37,7 +38,6 @@ def _plot_fit(
     """
     bins = np.linspace(140, 152, 100)
     centres = (bins[1:] + bins[:-1]) / 2
-    hist_kw = {"density": True, "histtype": "step"}
     fig, ax = plt.subplots(1, 2)
 
     rs_params = params[:-1]
@@ -86,6 +86,46 @@ def _plot_fit(
     ax[0].set_title(r"RS $\Delta$ M")
     ax[1].set_title(r"WS $\Delta$ M")
 
+    # Shade the WS bkg region where we want to take the number of bkg events from for optimising
+    # the classifier
+    signal_region = np.linspace(143.5, 147, 100)
+    # ax[1].plot(
+    #     centres,
+    #     ws_scale * (1 - ws_params[0]) * pdfs.normalised_bkg(centres, *ws_params[-2:]),
+    # )
+    ax[1].fill_between(
+        signal_region,
+        ws_scale
+        * (1 - ws_params[0])
+        * pdfs.normalised_bkg(signal_region, *ws_params[-2:]),
+        color="r",
+        alpha=0.2,
+    )
+
+    # Shade the RS signal region; this is where we will take the number of signal events
+    # for optimising the classifier
+    # We will need to scale this by the known amplitude ratio, of around 0.055
+    amplitude_ratio = 0.055
+    ax[0].fill_between(
+        signal_region,
+        amplitude_ratio ** 2
+        * rs_scale
+        * rs_params[0]
+        * pdfs.normalised_signal(signal_region, *rs_params[1:-2]),
+        color="b",
+        alpha=0.2,
+    )
+    # Also plot this on the other axis
+    ax[1].fill_between(
+        signal_region,
+        amplitude_ratio ** 2
+        * rs_scale
+        * rs_params[0]
+        * pdfs.normalised_signal(signal_region, *rs_params[1:-2]),
+        color="b",
+        alpha=0.2,
+    )
+
     return fig, ax
 
 
@@ -98,22 +138,18 @@ def main():
     ws = _delta_m(pd.concat(get.data("2018", "dcs", "magdown")))
 
     fitter = simultaneous_fit(rs, ws, 5)
-    fig, ax = _plot_fit(rs, ws, fitter.values)
+    fig, _ = _plot_fit(rs, ws, fitter.values)
 
     fig.tight_layout()
 
-    # Get the number of background events from the background fraction * the number of WS events
+    # Get the number of background events from the background fraction * integral of the WS bkg PDF
+    # in the region of interest
     # ----
     # Note that this assumes we did the fit with "equivalent" amounts of CF and DCS data
     # if we have (e.g.) much more CF than DCS, then we will get the wrong answer out.
     # Perhaps it would just be best to do it with the whole sample, when actually optimising the BDT
-    n_bkg = (1 - fitter.values[-1]) * len(ws)
 
-    # Get the number of signal events from the signal fraction * number of RS events, scaled by the
-    # approximately known amplitude ratio of 0.055
-    n_sig = len(rs) * fitter.values[0] * 0.055 ** 2
-
-    print(f"approx WS signal fraction {n_sig / (n_sig + n_bkg)}")
+    # print(f"approx WS signal fraction {n_sig / (n_sig + n_bkg)}")
 
     plt.show()
 
