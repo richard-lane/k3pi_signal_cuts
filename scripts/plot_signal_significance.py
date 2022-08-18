@@ -65,7 +65,7 @@ def main():
 
         return metrics.signal_significance(n_sig, n_bkg)
 
-    x_range = 0.0, 1.0
+    x_range = 0.0, 0.95
     threshholds = np.linspace(*x_range, 51)
     significances = [sig(threshhold) for threshhold in threshholds]
 
@@ -73,6 +73,7 @@ def main():
     max_index = np.argmax(significances)
     max_response = significances[max_index]
     max_threshhold = threshholds[max_index]
+    print(f"{max_threshhold=}")
 
     # Interpolate the threshholds
     lots_of_points = np.linspace(*x_range, 1000)
@@ -84,7 +85,7 @@ def main():
     ax.plot(max_threshhold, max_response, "ro")
 
     # Plot an arrow
-    length = 10
+    length = 100
     plt.arrow(
         max_threshhold,
         max_response - length,
