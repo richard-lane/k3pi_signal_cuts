@@ -12,6 +12,7 @@ from sklearn.metrics import roc_curve, roc_auc_score
 sys.path.append(str(pathlib.Path(__file__).absolute().parents[2] / "k3pi-data"))
 sys.path.append(str(pathlib.Path(__file__).absolute().parents[1]))
 
+from lib_cuts import util
 from lib_cuts.get import classifier as get_clf
 from lib_data import get, training_vars
 
@@ -29,6 +30,16 @@ def main():
     # We only want the testing data here
     sig_df = sig_df[~sig_df["train"]]
     bkg_df = bkg_df[~bkg_df["train"]]
+
+    # Lets also undersample so we get the same amount of signal/bkg that we expect to see
+    # in the data
+    sig_frac = 0.0852
+    keep_frac = util.weight(
+        np.concatenate((np.ones(len(sig_df)), np.zeros(len(bkg_df)))), sig_frac
+    )
+    sig_keep = np.random.default_rng().random(len(sig_df)) < keep_frac
+
+    sig_df = sig_df[sig_keep]
 
     combined_df = pd.concat((sig_df, bkg_df))
     combined_y = np.concatenate((np.ones(len(sig_df)), np.zeros(len(bkg_df))))
