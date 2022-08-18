@@ -147,7 +147,7 @@ def main(year: str, sign: str, magnetisation: str):
 
     print(classification_report(train_label, clf.predict(train_df[training_labels])))
 
-    # Resample for the training part of the classification report
+    # Resample for the testing part of the classification report
     gen = np.random.default_rng()
     test_mask = util.resample_mask(gen, test_label, sig_frac)
     print(

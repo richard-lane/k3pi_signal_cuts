@@ -79,8 +79,9 @@ def main():
 
     sig_df = sig_df[sig_keep]
 
-    sig_predictions = clf.predict(sig_df[training_labels])
-    bkg_predictions = clf.predict(bkg_df[training_labels])
+    threshhold = 0.185
+    sig_predictions = clf.predict_proba(sig_df[training_labels])[:, 1] > threshhold
+    bkg_predictions = clf.predict_proba(bkg_df[training_labels])[:, 1] > threshhold
 
     # Plot histograms of our variables before/after doing these cuts
     columns = list(training_vars.training_var_names()) + ["D0 mass", "D* mass"]

@@ -12,7 +12,7 @@ from scipy.interpolate import interp1d
 sys.path.append(str(pathlib.Path(__file__).absolute().parents[1]))
 sys.path.append(str(pathlib.Path(__file__).absolute().parents[2] / "k3pi-data"))
 
-from lib_cuts import read_data, util, metrics
+from lib_cuts import util, metrics
 from lib_cuts.get import classifier as get_clf
 from lib_data import get, training_vars
 
@@ -40,12 +40,17 @@ def main():
     bkg_df = bkg_df[~bkg_df["train"]]
 
     # Throw away data to get a realistic proportion of each
-    sig_frac = 0.023  # Got this number from k3pi_signal_cuts/scripts/mass_fit.py
+    sig_frac = 0.0852  # Got this number from k3pi_signal_cuts/scripts/mass_fit.py
     keep_frac = util.weight(
         np.concatenate((np.ones(len(sig_df)), np.zeros(len(bkg_df)))), sig_frac
     )
     sig_keep = np.random.default_rng().random(len(sig_df)) < keep_frac
     print(f"keeping {np.sum(sig_keep)} of {len(sig_keep)}")
+
+    print(
+        f"sig frac {np.sum(sig_keep):,} / {np.sum(sig_keep) + len(bkg_df):,}"
+        f"= {100 * np.sum(sig_keep) / (np.sum(sig_keep) + len(bkg_df)):.4f}%"
+    )
 
     # Find signal probabilities
     clf = get_clf(year, sign, magnetisation)
@@ -60,8 +65,8 @@ def main():
 
         return metrics.signal_significance(n_sig, n_bkg)
 
-    x_range = 0.1, 0.95
-    threshholds = np.linspace(*x_range, 31)
+    x_range = 0.0, 1.0
+    threshholds = np.linspace(*x_range, 51)
     significances = [sig(threshhold) for threshhold in threshholds]
 
     # Find the max of values
@@ -94,28 +99,6 @@ def main():
     ax.set_ylabel("signal significance")
 
     plt.savefig("significance_threshholds.png")
-    plt.show()
-
-    # Plot delta M for each threshhold
-    plt.clf()
-    fig, ax = plt.subplots()
-    sig_delta_m = sig_df["D* mass"] - sig_df["D0 mass"]
-    bkg_delta_m = bkg_df["D* mass"] - bkg_df["D0 mass"]
-
-    hist_kw = {"bins": np.linspace(130, 155), "histtype": "step"}
-    for i, threshhold in enumerate(threshholds[:14]):
-        if not i % 3:
-            sig_keep = sig_probs > threshhold
-            bkg_keep = bkg_probs > threshhold
-            ax.hist(
-                np.concatenate((sig_delta_m[sig_keep], bkg_delta_m[bkg_keep])),
-                **hist_kw,
-                label=f"{threshhold=:.3f}",
-            )
-
-    ax.legend()
-    fig.savefig("masses.png")
-
     plt.show()
 
 

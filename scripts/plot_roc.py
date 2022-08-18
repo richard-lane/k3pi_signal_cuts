@@ -17,6 +17,19 @@ from lib_cuts.get import classifier as get_clf
 from lib_data import get, training_vars
 
 
+def _best_threshhold(fpr, tpr, threshhold):
+    """
+    Find the fpr, tpr and threshhold closest to (0, 1)
+
+    """
+    points = np.column_stack((fpr, tpr))
+    distances = np.linalg.norm(points - (0, 1), axis=1)
+
+    min_index = np.argmin(distances)
+
+    return fpr[min_index], tpr[min_index], threshhold[min_index]
+
+
 def main():
     """
     ROC curve
@@ -48,14 +61,21 @@ def main():
     predicted_probs = get_clf(year, sign, magnetisation).predict_proba(
         combined_df[training_labels]
     )[:, 1]
-    fpr, tpr, _ = roc_curve(combined_y, predicted_probs)
+    fpr, tpr, threshholds = roc_curve(combined_y, predicted_probs)
     score = roc_auc_score(combined_y, predicted_probs)
+
+    # Find the threshhold closest to the top left corner
+    best_fpr, best_tpr, best_threshhold = _best_threshhold(fpr, tpr, threshholds)
 
     fig, ax = plt.subplots()
     ax.plot(fpr, tpr, label=f"score={score:.4f}")
     ax.plot([0, 1], [0, 1], "k--")
     ax.set_xlabel("false positive rate")
     ax.set_ylabel("true positive rate")
+
+    # Plot the best threshhold
+    ax.plot([best_fpr], [best_tpr], "ro", label=f"threshhold: {best_threshhold:.3f}")
+
     ax.legend()
     fig.tight_layout()
 
