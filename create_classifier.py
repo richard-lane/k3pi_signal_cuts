@@ -11,6 +11,7 @@ import pathlib
 import argparse
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import classification_report
 
@@ -41,6 +42,70 @@ def _train_test_dfs(year, sign, magnetisation):
     )
 
 
+def _plot_masses(
+    train_df: pd.DataFrame, train_label: np.ndarray, weights: np.ndarray, path: str
+) -> None:
+    """
+    Saves to train_masses.png
+
+    """
+    fig, ax = plt.subplots(1, 2, figsize=(8, 4))
+
+    bkg_df = train_df[train_label == 0]
+    sig_df = train_df[train_label == 1]
+
+    bkg_wt = weights[train_label == 0]
+    sig_wt = weights[train_label == 1]
+
+    def _delta_m(dataframe):
+        return dataframe["D* mass"] - dataframe["D0 mass"]
+
+    ax[0].hist(
+        sig_df["D0 mass"],
+        bins=np.linspace(1775, 1950, 200),
+        color="b",
+        alpha=0.4,
+        weights=sig_wt,
+    )
+    ax[0].hist(
+        bkg_df["D0 mass"],
+        bins=np.linspace(1775, 1950, 200),
+        color="r",
+        alpha=0.4,
+        weights=bkg_wt,
+    )
+
+    ax[1].hist(
+        _delta_m(sig_df),
+        bins=np.linspace(140, 160, 200),
+        color="b",
+        alpha=0.4,
+        label="sig",
+        weights=sig_wt,
+    )
+    ax[1].hist(
+        _delta_m(bkg_df),
+        bins=np.linspace(140, 160, 200),
+        color="r",
+        alpha=0.4,
+        label="bkg",
+        weights=bkg_wt,
+    )
+
+    ax[1].legend()
+
+    ax[0].set_title(r"$D^0$ Mass")
+    ax[1].set_title(r"$\Delta M$")
+
+    ax[0].set_xlabel("MeV")
+    ax[1].set_xlabel("MeV")
+
+    fig.tight_layout()
+
+    fig.savefig(path)
+    print(f"plotted {path}")
+
+
 def main(year: str, sign: str, magnetisation: str):
     """
     Create the classifier, print training scores
@@ -64,8 +129,16 @@ def main(year: str, sign: str, magnetisation: str):
     # We want to train the classifier on a realistic proportion of signal + background
     # Get this from running `scripts/mass_fit.py`
     # using this number for now
-    sig_frac = 0.5
+    sig_frac = 0.0852
     train_weights = util.weights(train_label, sig_frac)
+
+    # Plot delta M and D mass distributions before weighting
+    _plot_masses(
+        train_df, train_label, np.ones_like(train_label), "training_masses_no_wt.png"
+    )
+
+    # Plot delta M and D mass distributions
+    _plot_masses(train_df, train_label, train_weights, "training_masses_weighted.png")
 
     clf = GradientBoostingClassifier()
     # We only want to use some of our variables for training
