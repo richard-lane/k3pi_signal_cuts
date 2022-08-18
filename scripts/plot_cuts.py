@@ -49,8 +49,6 @@ def _plot(
     )
     axis.hist(bkg[bkg_predictions == 1], bins=bins, label="bkg", alpha=0.5, color="r")
 
-    axis.legend()
-
 
 def main():
     """
@@ -73,7 +71,7 @@ def main():
 
     # Lets also undersample so we get the same amount of signal/bkg that we expect to see
     # in the data
-    sig_frac = 0.5
+    sig_frac = 0.0852
     keep_frac = util.weight(
         np.concatenate((np.ones(len(sig_df)), np.zeros(len(bkg_df)))), sig_frac
     )
@@ -103,7 +101,12 @@ def main():
     )
     ax.ravel()[-1].set_title(r"$\Delta$M*")
 
+    ax[0, 0].legend()
+
     fig.tight_layout()
+
+    plt.savefig("cuts.png")
+
     plt.show()
 
 
