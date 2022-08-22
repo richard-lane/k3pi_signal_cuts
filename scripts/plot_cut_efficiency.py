@@ -97,6 +97,35 @@ def _delta_m_eff(
     plt.show()
 
 
+def _dst_eff(
+    sig_m: np.ndarray,
+    bkg_m: np.ndarray,
+    sig_predictions: np.ndarray,
+    bkg_predictions: np.ndarray,
+) -> None:
+    """
+    Cut efficiency with D* mass
+
+    """
+    fig, ax = plt.subplot_mosaic("AAA\nAAA\nBBB", sharex=True)
+    bins = np.linspace(1930, 2100, 15)
+    _plot_ratio(ax["A"], sig_m[sig_predictions == 1], sig_m, bins, "sig")
+    _plot_ratio(ax["A"], bkg_m[bkg_predictions == 1], bkg_m, bins, "bkg")
+
+    ax["A"].legend()
+    ax["A"].set_ylabel("efficiency")
+
+    ax["B"].set_xlabel(r"$M(D^*)$ / MeV")
+
+    bins = np.linspace(bins[0], bins[-1], 100)
+    ax["B"].hist(sig_m, bins=bins, histtype="step")
+    ax["B"].hist(bkg_m, bins=bins, histtype="step")
+
+    fig.suptitle("Cut efficiency")
+
+    plt.show()
+
+
 def _d_eff(
     sig_m: np.ndarray,
     bkg_m: np.ndarray,
@@ -181,6 +210,13 @@ def main():
     _d_eff(
         sig_df["D0 mass"],
         bkg_df["D0 mass"],
+        sig_predictions,
+        bkg_predictions,
+    )
+
+    _dst_eff(
+        sig_df["D* mass"],
+        bkg_df["D* mass"],
         sig_predictions,
         bkg_predictions,
     )
