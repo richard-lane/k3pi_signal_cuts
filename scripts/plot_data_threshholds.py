@@ -59,11 +59,12 @@ def main():
     ax.legend(title="Threshhold")
 
     ax.text(
-        146,
-        600,
+        146.2,
+        10000,
         "optimal significance (in simulation)",
         color="green",
         fontsize=8,
+        rotation=3,
     )
 
     fig.savefig("data_threshholds.png")
