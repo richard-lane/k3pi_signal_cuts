@@ -47,8 +47,7 @@ def main():
 
     # For various values of the threshhold, perform cuts
     # and plot the resultant delta M distribution
-    x_range = 0.0, 1.0
-    threshholds = np.sort(np.append(np.linspace(*x_range, 7), (0.019, 0.084)))
+    threshholds = [0.0, 0.05, 0.18, 0.30, 0.50, 0.80, 1.0]
 
     delta_m = _delta_m(ws_df)
     fig, ax = plt.subplots()
@@ -59,8 +58,13 @@ def main():
     fig.suptitle("WS data; BDT cuts at various probability threshholds")
     ax.legend(title="Threshhold")
 
-    ax.text(146, 430, "optimal significance", color="g")
-    ax.text(148, 680, "optimal FPR/TPR", color="orange", rotation=15)
+    ax.text(
+        146,
+        600,
+        "optimal significance (in simulation)",
+        color="green",
+        fontsize=8,
+    )
 
     fig.savefig("data_threshholds.png")
 

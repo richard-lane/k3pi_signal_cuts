@@ -219,9 +219,6 @@ def _plot_fit(
     plt.text(*text_locn, fr"$\times{amplitude_ratio:.3f}^2$", transform=fig.transFigure)
 
     # Find the areas of the shaded bits
-    # TODO I don't have the right numbers, think I've done the integration wrong
-    # Gives the right fraction though, hopefully...
-    # need a scaling factor to convert from area on the plot to counts
     factor = (bins[1] - bins[0]) / (signal_region[1] - signal_region[0])
     n_signal = factor * np.trapz(_scaled_signal(signal_region), signal_region)
     n_bkg = factor * np.trapz(

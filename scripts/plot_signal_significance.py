@@ -40,7 +40,7 @@ def main():
     bkg_df = bkg_df[~bkg_df["train"]]
 
     # Throw away data to get a realistic proportion of each
-    sig_frac = 0.0852  # Got this number from k3pi_signal_cuts/scripts/mass_fit.py
+    sig_frac = 0.0969  # Got this number from k3pi_signal_cuts/scripts/mass_fit.py
     keep_frac = util.weight(
         np.concatenate((np.ones(len(sig_df)), np.zeros(len(bkg_df)))), sig_frac
     )
@@ -63,9 +63,13 @@ def main():
         n_sig = np.sum(sig_probs > threshhold)
         n_bkg = np.sum(bkg_probs > threshhold)
 
-        return metrics.signal_significance(n_sig, n_bkg)
+        # Scale the number of signal and background by the expected amount of signal
+        total_expected = 1697700  # Total DCS magdown expected in signal region
+        scale_factor = total_expected / (len(sig_probs) + len(bkg_probs))
 
-    x_range = 0.0, 0.95
+        return metrics.signal_significance(scale_factor * n_sig, scale_factor * n_bkg)
+
+    x_range = 0.0, 0.90
     threshholds = np.linspace(*x_range, 51)
     significances = [sig(threshhold) for threshhold in threshholds]
 
@@ -73,7 +77,6 @@ def main():
     max_index = np.argmax(significances)
     max_response = significances[max_index]
     max_threshhold = threshholds[max_index]
-    print(f"{max_threshhold=}")
 
     # Interpolate the threshholds
     lots_of_points = np.linspace(*x_range, 1000)
@@ -94,7 +97,7 @@ def main():
         length_includes_head=True,
         color="r",
     )
-    plt.text(max_threshhold, max_response - 1.1 * length, f"{max_threshhold=}")
+    plt.text(max_threshhold, max_response - 1.1 * length, f"{max_threshhold=:.3f}")
 
     ax.set_xlabel("probability threshhold")
     ax.set_ylabel("signal significance")
