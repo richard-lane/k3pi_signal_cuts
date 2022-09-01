@@ -148,7 +148,7 @@ def _plot_fit(
     bins = np.linspace(140, 152, 150)
     fig, ax = plt.subplots(1, 2, figsize=(12, 6))
 
-    signal_region = np.linspace(143.5, 147, 200)
+    signal_region = np.linspace(144, 147, 200)
     # scales assume equally spaced bins
     rs_params = params[:-1]
     ws_params = (params[-1], *params[1:-1])
@@ -228,7 +228,6 @@ def _plot_fit(
         _ws_bkg(signal_region, ws_scale, ws_params[0], ws_params[-2:]),
         signal_region,
     )
-    print(f"n sig should be about {(amplitude_ratio ** 2) * len(rs) * rs_params[0]}")
 
     print(f"{n_signal=:.4f}, {n_bkg=:.4f}")
     fig.suptitle(f"signal fraction {n_signal / (n_signal + n_bkg):.4f}")

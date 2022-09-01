@@ -94,6 +94,7 @@ def _delta_m_eff(
 
     fig.suptitle("Cut efficiency")
 
+    fig.savefig("delta_m_efficiency.png")
     plt.show()
 
 
@@ -123,6 +124,7 @@ def _dst_eff(
 
     fig.suptitle("Cut efficiency")
 
+    fig.savefig("dst_m_efficiency.png")
     plt.show()
 
 
@@ -152,6 +154,7 @@ def _d_eff(
 
     fig.suptitle("Cut efficiency")
 
+    fig.savefig("d0_m_efficiency.png")
     plt.show()
 
 
@@ -181,6 +184,7 @@ def _time_eff(
     ax["B"].set_xlabel("t / ps")
     ax["A"].set_ylabel("efficiency")
 
+    fig.savefig("time_efficiency.png")
     plt.show()
 
 
@@ -223,7 +227,7 @@ def main():
 
     _delta_m_eff(
         bkg_df,
-        clf.predict(bkg_df[training_labels]),
+        bkg_predictions,
     )
 
 
