@@ -63,6 +63,8 @@ def _plot(
         label="bkg",
     )
 
+    ax.set_xlabel(r"$\Delta M$ / MeV")
+
 
 def _ws_bkg(
     domain: np.ndarray,
