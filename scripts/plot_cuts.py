@@ -1,5 +1,5 @@
 """
-Plot variables before and after cuts
+Plot testing data variables before and after cuts
 
 """
 import sys
