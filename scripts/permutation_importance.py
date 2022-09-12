@@ -146,7 +146,7 @@ def _importance(
     Find the permutation importances using the given objective function
 
     """
-    n_trials = 10
+    n_trials = 2
     labels = training_vars.training_var_names()
     importances = []
     with tqdm(total=n_trials * len(labels)) as pbar:

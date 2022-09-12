@@ -12,7 +12,6 @@ import argparse
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import classification_report
 
 from lib_cuts import definitions
@@ -140,7 +139,9 @@ def main(year: str, sign: str, magnetisation: str):
     # Plot delta M and D mass distributions
     _plot_masses(train_df, train_label, train_weights, "training_masses_weighted.png")
 
-    clf = GradientBoostingClassifier()
+    # Type is defined in lib_cuts.definitions
+    clf = definitions.Classifier()
+
     # We only want to use some of our variables for training
     training_labels = list(training_vars.training_var_names())
     clf.fit(train_df[training_labels], train_label, train_weights)

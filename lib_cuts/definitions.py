@@ -2,10 +2,9 @@
 Useful definitions and things
 
 """
-import os
-import glob
 import pathlib
 from typing import List
+from sklearn.ensemble import GradientBoostingClassifier as Classifier
 
 
 def classifier_path(year: str, sign: str, magnetisation: str) -> pathlib.Path:
