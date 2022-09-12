@@ -51,6 +51,7 @@ def main():
         f"sig frac {np.sum(sig_keep):,} / {np.sum(sig_keep) + len(bkg_df):,}"
         f"= {100 * np.sum(sig_keep) / (np.sum(sig_keep) + len(bkg_df)):.4f}%"
     )
+    sig_df = sig_df[sig_keep]
 
     # Find signal probabilities
     clf = get_clf(year, sign, magnetisation)

@@ -1,5 +1,5 @@
 """
-Plot feature importance for the classifier
+Plot impurity-based feature importance for the classifier
 
 """
 import sys
@@ -15,7 +15,7 @@ from lib_data import training_vars
 
 def main():
     """
-    Show plots before and after applying cuts with the classifier
+    Plot feature importances naively- using an impurity based method
 
     """
     # Predict which of these are signal and background using our classifier
@@ -25,7 +25,9 @@ def main():
 
     importances = clf.feature_importances_
     ax.bar(range(len(importances)), importances)
-    ax.set_xticks(range(len(importances)), training_vars.training_var_names(), rotation=45)
+    ax.set_xticks(
+        range(len(importances)), training_vars.training_var_names(), rotation=45
+    )
 
     fig.suptitle("Feature Importances")
     fig.tight_layout()
