@@ -47,7 +47,7 @@ def _plot(axis: plt.Axes, dataframe: pd.DataFrame) -> None:
     axis.set_xticks(range(num))
     axis.set_yticks(range(num))
 
-    axis.set_xticklabels(names, rotation=45)
+    axis.set_xticklabels(names, rotation=90)
     axis.set_yticklabels(names)
 
 
